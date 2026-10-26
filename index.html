@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Shadows of the Fallen — Prototype</title>
+<title>Shadows of the Fallen — Stylized Fantasy Edition</title>
 <style>
   *{box-sizing:border-box} body{margin:0;overflow:hidden;background:#080d16;color:#f4f0e8;font-family:Georgia,serif}
   #hud{position:fixed;inset:0;pointer-events:none}
@@ -25,7 +25,7 @@
 </style>
 </head>
 <body>
-<div id="start"><div id="startbox"><h1>SHADOWS OF THE FALLEN</h1><p class="gold">THE BATTLE OF THE KING'S BANE</p><p>A first playable prototype. Take control of Sir Robin of the Lily, defend the palace courtyard, and test both camera perspectives.</p><p><b>Controls:</b> WASD move · Mouse look · Left click attack · Space dodge · V switch view · Esc release mouse</p><button id="begin">ENTER THE COURTYARD</button><p style="font-size:12px">Prototype graphics and combat are placeholders; the story and world will grow as we build.</p></div></div>
+<div id="start"><div id="startbox"><h1>SHADOWS OF THE FALLEN</h1><p class="gold">THE BATTLE OF THE KING'S BANE</p><p>A first playable prototype. Take control of Sir Robin of the Lily, defend the palace courtyard, and test both camera perspectives.</p><p><b>Controls:</b> WASD move · Mouse look · Left click attack · Space dodge · V switch view · Esc release mouse</p><button id="begin">ENTER THE COURTYARD</button><p style="font-size:12px">Stylized fantasy edition · lightweight low-poly visuals · story and combat are still evolving.</p></div></div>
 <div id="hud">
   <div id="brand"><strong>SHADOWS OF THE FALLEN</strong><small>THE LAST STAND OF SIR ROBIN</small></div>
   <div id="message"><h1 id="sceneTitle">KIEMAL STANDS</h1><p id="sceneText">The first wave approaches the palace gates.</p></div>
@@ -37,18 +37,25 @@
 </div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-const scene = new THREE.Scene(); scene.background = new THREE.Color(0x101923); scene.fog = new THREE.Fog(0x101923, 22, 78);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x101923); scene.fog = new THREE.Fog(0x101923, 30, 88);
 const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, .1, 150);
-const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; document.body.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xc8d9ee,0x34251b,2.1));
-const sun=new THREE.DirectionalLight(0xffd6a0,2.6); sun.position.set(-12,22,8); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); scene.add(sun);
+const sun=new THREE.DirectionalLight(0xffd6a0,2.6); sun.position.set(-12,22,8); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); scene.add(sun);
 const fill=new THREE.PointLight(0xff6a32,30,35); fill.position.set(0,5,-12); scene.add(fill);
 function mat(color,rough=.75,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
 const stone=mat(0x555963), darkStone=mat(0x292f39), silver=mat(0xc5cbd2,.32,.7), gold=mat(0xc7a44e,.35,.65), white=mat(0xe8e3d6), blue=mat(0x243d62), skin=mat(0xd9b69a), hair=mat(0xd9dce0), black=mat(0x171b23), enemyMat=mat(0x292b35,.8,.2), glow= new THREE.MeshStandardMaterial({color:0x6a9a9c,emissive:0x1d7c83,emissiveIntensity:1.2});
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat(0x35343a)); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
-const grid=new THREE.GridHelper(80,40,0x6a6254,0x46434a); grid.position.y=.012; scene.add(grid);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat(0x343b42)); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+// Broad, stylized flagstones replace the debug-like grid.
+const flagstoneMats=[mat(0x454b53),mat(0x50545a),mat(0x3d454e),mat(0x585653)];
+for(let z=-15;z<15;z+=2.25){for(let x=-18;x<18;x+=2.25){const tile=new THREE.Mesh(new THREE.BoxGeometry(2.12,.08,2.12),flagstoneMats[(Math.abs(Math.floor(x*2+z*3)))%flagstoneMats.length]);tile.position.set(x+(Math.floor(z*3)%2)*.3,.02,z);tile.receiveShadow=true;scene.add(tile)}}
+// Distant moon and low-poly mountain silhouettes give the courtyard a horizon.
+const moon=new THREE.Mesh(new THREE.SphereGeometry(3,12,8),new THREE.MeshBasicMaterial({color:0xe4dfc9}));moon.position.set(-12,17,-34);scene.add(moon);
+for(let i=0;i<13;i++){const peak=new THREE.Mesh(new THREE.ConeGeometry(4+((i*7)%4),8+((i*5)%7),5),mat(i%2?0x202c38:0x29333d));peak.position.set(-34+i*5,2,-31-(i%3)*3);peak.rotation.y=i*.4;scene.add(peak)}
 function box(parent,w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 function cylinder(parent,rt,rb,h,material,x,y,z,segments=10){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+// Low-poly debris and scattered broken stones add detail without heavy assets.
+for(let i=0;i<42;i++){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.18+(i%4)*.07,0),mat(i%2?0x62605b:0x343940));rock.position.set(Math.sin(i*12.3)*(7+(i%4)*2),.12,Math.cos(i*8.7)*(5+(i%5)*2));rock.rotation.set(i*.7,i*.4,i*.2);rock.castShadow=true;scene.add(rock)}
 // Palace courtyard walls, towers, archway and braziers
 for(let x=-19;x<=19;x+=4){box(scene,3.7,5,.8,stone,x,2.5,-18);box(scene,3.8,.3,1,gold,x,5.15,-18)}
 box(scene,40,1.1,1.2,darkStone,0,.55,-18);
@@ -57,14 +64,19 @@ box(scene,1,6,30,darkStone,-20,3,0);box(scene,1,6,30,darkStone,20,3,0);
 box(scene,10,7,1.5,darkStone,-7,3.5,-18);box(scene,10,7,1.5,darkStone,7,3.5,-18);
 box(scene,4,8,1.2,gold,0,4,-18);box(scene,3,6,.8,darkStone,0,3,-17.3);
 for(const x of [-14,14]){cylinder(scene,.5,.7,5,stone,x,2.5,-13,8);const flame=new THREE.Mesh(new THREE.IcosahedronGeometry(.45,1),new THREE.MeshBasicMaterial({color:0xff742f}));flame.position.set(x,5.3,-13);scene.add(flame);const l=new THREE.PointLight(0xff6a2d,18,16);l.position.set(x,5,-13);scene.add(l)}
-// decorative banners
-for(const x of [-9,9]){box(scene,.08,7,.08,gold,x,5,-16);const banner=box(scene,1.6,2.5,.08,blue,x,3.9,-16);const emblem=box(scene,.35,.65,.1,white,x,3.9,-15.92);emblem.rotation.z=.2}
-// Robin model (stylized placeholder)
+// decorative banners and lily emblems
+for(const x of [-9,9]){box(scene,.08,7,.08,gold,x,5,-16);const banner=box(scene,1.6,2.5,.08,blue,x,3.9,-16);const emblem=box(scene,.35,.65,.1,white,x,3.9,-15.92);emblem.rotation.z=.2;for(let k=-1;k<=1;k++){const petal=new THREE.Mesh(new THREE.SphereGeometry(.13,7,5),gold);petal.scale.set(.7,1.6,.35);petal.position.set(x+k*.2,3.95+Math.abs(k)*.09,-15.82);scene.add(petal)}}
+// A few stylized cypress trees along the outer walls.
+for(const x of [-17,-13,13,17]){for(const z of [-8,0,8]){cylinder(scene,.13,.2,1.6,mat(0x4b392b),x,.8,z,6);for(let j=0;j<3;j++){const crown=new THREE.Mesh(new THREE.ConeGeometry(.85-j*.16,1.9,6),mat(j===1?0x29483f:0x315548));crown.position.set(x,1.7+j*.72,z);crown.castShadow=true;scene.add(crown)}}}
+// Sir Robin of the Lily — stylized low-poly knight model
 const robin=new THREE.Group(); scene.add(robin);
 const body=new THREE.Group(); robin.add(body);
-cylinder(body,.43,.52,1.05,blue,0,1.35,0,10); // tunic
-box(body,.95,.24,.5,silver,0,1.78,0); // chestplate
-box(body,1.08,.22,.52,gold,0,1.9,0);
+cylinder(body,.43,.52,1.05,blue,0,1.35,0,8); // tunic
+// layered breastplate, shoulder guards and rivets
+box(body,.95,.24,.5,silver,0,1.78,0); box(body,1.08,.22,.52,gold,0,1.9,0);
+const chestInset=box(body,.64,.37,.08,mat(0x9ca8b5,.38,.55),0,1.62,.265);
+for(const x of [-.38,.38]){const pauldron=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),silver);pauldron.scale.set(1,.75,1);pauldron.position.set(x,1.72,0);body.add(pauldron);const rivet=new THREE.Mesh(new THREE.SphereGeometry(.045,6,5),gold);rivet.position.set(x,1.79,.235);body.add(rivet)}
+box(body,.7,.12,.55,gold,0,1.08,.02);
 cylinder(body,.48,.42,.25,black,0,.82,0,10);
 for(const x of [-.24,.24]){cylinder(body,.16,.19,.72,black,x,.38,0,8);box(body,.38,.16,.4,silver,x,.2,0)}
 for(const x of [-.57,.57]){const arm=cylinder(body,.17,.2,.82,silver,x,1.36,0,8);arm.rotation.z=x<0?-.12:.12;cylinder(body,.2,.22,.25,gold,x,1.75,0,8);cylinder(body,.15,.17,.25,black,x,1.0,0,8)}
@@ -73,16 +85,19 @@ const haircap=new THREE.Mesh(new THREE.SphereGeometry(.33,16,10,0,Math.PI*2,0,Ma
 for(const x of [-.28,.28]){const lock=cylinder(body,.09,.13,.52,hair,x,2.3,-.02,8);lock.rotation.z=x<0?-.1:.1}
 const beard=new THREE.Mesh(new THREE.ConeGeometry(.22,.42,8),hair);beard.position.set(0,2.08,.18);beard.rotation.x=-.16;body.add(beard);
 for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),black);eye.position.set(x,2.37,.285);body.add(eye)}
-// cloak
-const cloak=box(body,.9,1.45,.13,white,0,1.15,-.34);cloak.rotation.x=-.08;
+// white cloak with a gold clasp and blue Lily sigil
+const cloak=box(body,.98,1.5,.16,white,0,1.14,-.37);cloak.rotation.x=-.08;
+const cloakFold=box(body,.12,1.24,.025,mat(0xbab8b0),.23,1.15,-.27);cloakFold.rotation.z=-.05;
+const clasp=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),gold);clasp.position.set(0,1.88,-.25);body.add(clasp);
 const lily=box(body,.18,.42,.05,blue,0,1.25,-.265);lily.rotation.z=.12;
+for(const x of [-.09,0,.09]){const petal=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),gold);petal.scale.set(.65,1.45,.4);petal.position.set(x,1.34,-.23);body.add(petal)}
 // sword held to right side; rotate group for attacks
 const swordPivot=new THREE.Group(); swordPivot.position.set(.65,1.35,.15);body.add(swordPivot);
 cylinder(swordPivot,.07,.07,.38,black,0,-.06,0,8);box(swordPivot,.42,.07,.08,gold,0,.13,0);const blade= new THREE.Mesh(new THREE.BoxGeometry(.105,.95,.045),silver);blade.position.set(0,.63,0);blade.castShadow=true;swordPivot.add(blade);const tip=new THREE.Mesh(new THREE.ConeGeometry(.075,.22,4),silver);tip.position.set(0,1.2,0);swordPivot.add(tip);
 const helmet=new THREE.Group();body.add(helmet);const helmShell=new THREE.Mesh(new THREE.SphereGeometry(.36,12,10),silver);helmShell.scale.set(1,1.05,1);helmShell.position.set(0,2.48,0);helmet.add(helmShell);const snout=box(helmet,.28,.25,.38,gold,0,2.28,.18);const stripe=box(helmet,.08,.54,.08,gold,0,2.62,.28);for(const x of [-.22,.22]){const ear=new THREE.Mesh(new THREE.ConeGeometry(.13,.3,5),gold);ear.position.set(x,2.76,0);helmet.add(ear)}helmet.visible=false;
 robin.position.set(0,0,5);
 const enemies=[];
-function createEnemy(x,z,i){const g=new THREE.Group();scene.add(g);cylinder(g,.34,.43,.95,enemyMat,0,1.15,0,8);box(g,.72,.22,.42,silver,0,1.6,0);const h=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),black);h.position.y=1.85;g.add(h);for(const s of [-1,1]){cylinder(g,.12,.16,.65,enemyMat,s*.48,1.1,0,7);cylinder(g,.14,.16,.65,enemyMat,s*.2,.38,0,7)}const eye1=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),glow);eye1.position.set(-.09,1.88,.2);g.add(eye1);const eye2=eye1.clone();eye2.position.x=.09;g.add(eye2);const weapon=box(g,.08,.75,.08,silver,.55,1.15,.1);weapon.rotation.z=-.25;g.position.set(x,0,z);scene.add(g);enemies.push({g,hp:3,attack:0,dead:false,weapon});}
+function createEnemy(x,z,i){const g=new THREE.Group();scene.add(g);const armor=i%2?mat(0x493d45,.75,.25):enemyMat;cylinder(g,.34,.43,.95,armor,0,1.15,0,7);box(g,.72,.22,.42,i%2?mat(0x8c5d51,.5,.3):silver,0,1.6,0);for(const sx of [-.35,.35]){const pauldron=new THREE.Mesh(new THREE.DodecahedronGeometry(.19,0),armor);pauldron.position.set(sx,1.65,0);g.add(pauldron)}const h=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),black);h.position.y=1.85;g.add(h);for(const s of [-1,1]){cylinder(g,.12,.16,.65,enemyMat,s*.48,1.1,0,7);cylinder(g,.14,.16,.65,enemyMat,s*.2,.38,0,7)}const eye1=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),glow);eye1.position.set(-.09,1.88,.2);g.add(eye1);const eye2=eye1.clone();eye2.position.x=.09;g.add(eye2);const weapon=box(g,.08,.75,.08,silver,.55,1.15,.1);weapon.rotation.z=-.25;g.position.set(x,0,z);scene.add(g);enemies.push({g,hp:3,attack:0,dead:false,weapon});}
 for(let i=0;i<7;i++)createEnemy((i%4)*3.3-5,-7-Math.floor(i/4)*4,i);
 let yaw=0,pitch=-.08,third=true,health=100,attacking=0,dodge=0,helmetOn=false,started=false,dialogueIndex=0;
 const keys={};let locked=false;
@@ -95,10 +110,10 @@ const lines=[
 ];
 function showToast(s){toast.textContent=s;toast.style.display='block';setTimeout(()=>toast.style.display='none',1800)}
 function updateUI(){document.getElementById('health').style.width=health+'%';document.getElementById('healthText').textContent='VITALITY '+Math.max(0,Math.round(health))+' / 100';document.getElementById('viewLabel').textContent=third?'THIRD-PERSON VIEW':'FIRST-PERSON VIEW';document.getElementById('crosshair').style.display=third?'none':'block'}
-function nextLine(){dialogueIndex++;if(dialogueIndex<lines.length){dialogueText.textContent=lines[dialogueIndex].text;document.getElementById('sceneTitle').textContent=lines[dialogueIndex].title}else{dialogue.style.display='none';started=true;helmetOn=false;helmet.visible=false;requestLock();showToast('The first wave is here. Defend the courtyard!')}}
+function nextLine(){dialogueIndex++;if(dialogueIndex<lines.length){dialogueText.textContent=lines[dialogueIndex].text;document.getElementById('sceneTitle').textContent=lines[dialogueIndex].title;helmetOn=dialogueIndex===2;helmet.visible=helmetOn;if(dialogueIndex===3){helmetOn=false;helmet.visible=false;showToast('Robin casts the Tiger’s Crown aside')}}else{dialogue.style.display='none';started=true;helmetOn=false;helmet.visible=false;requestLock();showToast('The first wave is here. Defend the courtyard!')}}
 next.onclick=nextLine;
 function requestLock(){renderer.domElement.requestPointerLock?.()}
-document.getElementById('begin').onclick=()=>{start.style.display='none';dialogue.style.display='block';dialogueIndex=0;document.getElementById('sceneTitle').textContent=lines[0].title;dialogueText.textContent=lines[0].text;requestLock()};
+document.getElementById('begin').onclick=()=>{start.style.display='none';dialogue.style.display='block';dialogueIndex=0;helmet.visible=false;document.getElementById('sceneTitle').textContent=lines[0].title;dialogueText.textContent=lines[0].text;requestLock()};
 document.addEventListener('pointerlockchange',()=>locked=document.pointerLockElement===renderer.domElement);
 document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-1.15,Math.min(1.15,pitch))});
 document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyV'){third=!third;updateUI();showToast(third?'Third-person view':'First-person view')}if(e.code==='Space'&&started)dodge=.28});
