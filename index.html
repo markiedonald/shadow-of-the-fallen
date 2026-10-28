@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Shadows of the Fallen — Stylized Fantasy Edition</title>
+<title>Shadows of the Fallen — Robin Visual Upgrade</title>
 <style>
   *{box-sizing:border-box} body{margin:0;overflow:hidden;background:#080d16;color:#f4f0e8;font-family:Georgia,serif}
   #hud{position:fixed;inset:0;pointer-events:none}
@@ -19,6 +19,10 @@
   #dialogue p{font-size:19px;line-height:1.5;margin:0 0 14px}
   button{background:#b49b5f;color:#111;border:0;padding:10px 20px;font-weight:bold;cursor:pointer;letter-spacing:1px}
   #start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse,#1d2b3b 0%,#080d16 75%);pointer-events:auto}
+  #pause{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#050912b8;z-index:10;pointer-events:auto}
+  #pausebox{width:min(520px,90%);padding:28px;text-align:center;border:1px solid #b49b5f;background:#08111df5;box-shadow:0 0 50px #000}
+  #pausebox h2{letter-spacing:2px;margin:0 0 10px} #pausebox p{line-height:1.7;color:#ddd;margin:10px 0 18px}
+  #pausebox button{font-size:14px;padding:12px 22px}
   #startbox{width:min(680px,90%);padding:32px;text-align:center;border:1px solid #b49b5f;background:#08111de8;box-shadow:0 0 50px #000}
   #startbox h1{font-size:clamp(28px,5vw,52px);margin:0 0 8px;letter-spacing:3px}#startbox p{line-height:1.6;color:#d7d4cc}
   .gold{color:#e2c77d} #toast{position:absolute;top:75px;left:50%;transform:translateX(-50%);font:14px Arial;background:#07101bdc;padding:8px 12px;border:1px solid #b49b5f;display:none}
@@ -26,22 +30,23 @@
 </head>
 <body>
 <div id="start"><div id="startbox"><h1>SHADOWS OF THE FALLEN</h1><p class="gold">THE BATTLE OF THE KING'S BANE</p><p>A first playable prototype. Take control of Sir Robin of the Lily, defend the palace courtyard, and test both camera perspectives.</p><p><b>Controls:</b> WASD move · Mouse look · Left click attack · Space dodge · V switch view · Esc release mouse</p><button id="begin">ENTER THE COURTYARD</button><p style="font-size:12px">Stylized fantasy edition · lightweight low-poly visuals · story and combat are still evolving.</p></div></div>
+<div id="pause"><div id="pausebox"><h2>GAME PAUSED</h2><p>Your mouse is free. Click Resume to return to the battle.<br><b>W A S D</b> Move · <b>Mouse</b> Look · <b>Left Click</b> Attack<br><b>Space</b> Dodge · <b>V</b> Switch camera · <b>Esc</b> Release mouse</p><button id="resume">RESUME GAME</button></div></div>
 <div id="hud">
   <div id="brand"><strong>SHADOWS OF THE FALLEN</strong><small>THE LAST STAND OF SIR ROBIN</small></div>
   <div id="message"><h1 id="sceneTitle">KIEMAL STANDS</h1><p id="sceneText">The first wave approaches the palace gates.</p></div>
   <div id="crosshair">+</div>
   <div id="toast"></div>
   <div id="status"><b>SIR ROBIN OF THE LILY</b><div id="healthOuter"><div id="health"></div></div><small id="healthText">VITALITY 100 / 100</small><div style="margin-top:7px;color:#d8c88e;font:12px Arial" id="viewLabel">THIRD-PERSON VIEW</div></div>
-  <div id="hint">W A S D — Move<br>Mouse — Look around<br>Left Click — Sword attack<br>Space — Dodge<br>V — Switch camera</div>
+  <div id="hint">W A S D — Move<br>Mouse — Look around<br>Left Click — Sword attack<br>Space — Dodge<br>V — Switch camera<br>Esc — Free mouse / pause</div>
   <div id="dialogue" style="display:none"><p id="dialogueText"></p><button id="next">CONTINUE</button></div>
 </div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x101923); scene.fog = new THREE.Fog(0x101923, 30, 88);
 const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, .1, 150);
-const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:"low-power"}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.BasicShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; document.body.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xc8d9ee,0x34251b,2.1));
-const sun=new THREE.DirectionalLight(0xffd6a0,2.6); sun.position.set(-12,22,8); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); scene.add(sun);
+const sun=new THREE.DirectionalLight(0xffd6a0,2.6); sun.position.set(-12,22,8); sun.castShadow=true; sun.shadow.mapSize.set(512,512); scene.add(sun);
 const fill=new THREE.PointLight(0xff6a32,30,35); fill.position.set(0,5,-12); scene.add(fill);
 function mat(color,rough=.75,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
 const stone=mat(0x555963), darkStone=mat(0x292f39), silver=mat(0xc5cbd2,.32,.7), gold=mat(0xc7a44e,.35,.65), white=mat(0xe8e3d6), blue=mat(0x243d62), skin=mat(0xd9b69a), hair=mat(0xd9dce0), black=mat(0x171b23), enemyMat=mat(0x292b35,.8,.2), glow= new THREE.MeshStandardMaterial({color:0x6a9a9c,emissive:0x1d7c83,emissiveIntensity:1.2});
@@ -68,40 +73,90 @@ for(const x of [-14,14]){cylinder(scene,.5,.7,5,stone,x,2.5,-13,8);const flame=n
 for(const x of [-9,9]){box(scene,.08,7,.08,gold,x,5,-16);const banner=box(scene,1.6,2.5,.08,blue,x,3.9,-16);const emblem=box(scene,.35,.65,.1,white,x,3.9,-15.92);emblem.rotation.z=.2;for(let k=-1;k<=1;k++){const petal=new THREE.Mesh(new THREE.SphereGeometry(.13,7,5),gold);petal.scale.set(.7,1.6,.35);petal.position.set(x+k*.2,3.95+Math.abs(k)*.09,-15.82);scene.add(petal)}}
 // A few stylized cypress trees along the outer walls.
 for(const x of [-17,-13,13,17]){for(const z of [-8,0,8]){cylinder(scene,.13,.2,1.6,mat(0x4b392b),x,.8,z,6);for(let j=0;j<3;j++){const crown=new THREE.Mesh(new THREE.ConeGeometry(.85-j*.16,1.9,6),mat(j===1?0x29483f:0x315548));crown.position.set(x,1.7+j*.72,z);crown.castShadow=true;scene.add(crown)}}}
-// Sir Robin of the Lily — stylized low-poly knight model
+// Sir Robin of the Lily — balanced, performance-conscious human-proportioned model.
+// Built from smooth overlapping forms and layered armor rather than box-shaped limbs.
 const robin=new THREE.Group(); scene.add(robin);
 const body=new THREE.Group(); robin.add(body);
-cylinder(body,.43,.52,1.05,blue,0,1.35,0,8); // tunic
-// layered breastplate, shoulder guards and rivets
-box(body,.95,.24,.5,silver,0,1.78,0); box(body,1.08,.22,.52,gold,0,1.9,0);
-const chestInset=box(body,.64,.37,.08,mat(0x9ca8b5,.38,.55),0,1.62,.265);
-for(const x of [-.38,.38]){const pauldron=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),silver);pauldron.scale.set(1,.75,1);pauldron.position.set(x,1.72,0);body.add(pauldron);const rivet=new THREE.Mesh(new THREE.SphereGeometry(.045,6,5),gold);rivet.position.set(x,1.79,.235);body.add(rivet)}
-box(body,.7,.12,.55,gold,0,1.08,.02);
-cylinder(body,.48,.42,.25,black,0,.82,0,10);
-for(const x of [-.24,.24]){cylinder(body,.16,.19,.72,black,x,.38,0,8);box(body,.38,.16,.4,silver,x,.2,0)}
-for(const x of [-.57,.57]){const arm=cylinder(body,.17,.2,.82,silver,x,1.36,0,8);arm.rotation.z=x<0?-.12:.12;cylinder(body,.2,.22,.25,gold,x,1.75,0,8);cylinder(body,.15,.17,.25,black,x,1.0,0,8)}
-cylinder(body,.28,.3,.25,skin,0,2.05,0,12);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,16,12),skin);head.position.set(0,2.34,0);head.castShadow=true;body.add(head);
-const haircap=new THREE.Mesh(new THREE.SphereGeometry(.33,16,10,0,Math.PI*2,0,Math.PI*.58),hair);haircap.position.set(0,2.47,-.015);body.add(haircap);
-for(const x of [-.28,.28]){const lock=cylinder(body,.09,.13,.52,hair,x,2.3,-.02,8);lock.rotation.z=x<0?-.1:.1}
-const beard=new THREE.Mesh(new THREE.ConeGeometry(.22,.42,8),hair);beard.position.set(0,2.08,.18);beard.rotation.x=-.16;body.add(beard);
-for(const x of [-.12,.12]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),black);eye.position.set(x,2.37,.285);body.add(eye)}
-// white cloak with a gold clasp and blue Lily sigil
-const cloak=box(body,.98,1.5,.16,white,0,1.14,-.37);cloak.rotation.x=-.08;
-const cloakFold=box(body,.12,1.24,.025,mat(0xbab8b0),.23,1.15,-.27);cloakFold.rotation.z=-.05;
-const clasp=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),gold);clasp.position.set(0,1.88,-.25);body.add(clasp);
-const lily=box(body,.18,.42,.05,blue,0,1.25,-.265);lily.rotation.z=.12;
-for(const x of [-.09,0,.09]){const petal=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),gold);petal.scale.set(.65,1.45,.4);petal.position.set(x,1.34,-.23);body.add(petal)}
-// sword held to right side; rotate group for attacks
-const swordPivot=new THREE.Group(); swordPivot.position.set(.65,1.35,.15);body.add(swordPivot);
-cylinder(swordPivot,.07,.07,.38,black,0,-.06,0,8);box(swordPivot,.42,.07,.08,gold,0,.13,0);const blade= new THREE.Mesh(new THREE.BoxGeometry(.105,.95,.045),silver);blade.position.set(0,.63,0);blade.castShadow=true;swordPivot.add(blade);const tip=new THREE.Mesh(new THREE.ConeGeometry(.075,.22,4),silver);tip.position.set(0,1.2,0);swordPivot.add(tip);
-const helmet=new THREE.Group();body.add(helmet);const helmShell=new THREE.Mesh(new THREE.SphereGeometry(.36,12,10),silver);helmShell.scale.set(1,1.05,1);helmShell.position.set(0,2.48,0);helmet.add(helmShell);const snout=box(helmet,.28,.25,.38,gold,0,2.28,.18);const stripe=box(helmet,.08,.54,.08,gold,0,2.62,.28);for(const x of [-.22,.22]){const ear=new THREE.Mesh(new THREE.ConeGeometry(.13,.3,5),gold);ear.position.set(x,2.76,0);helmet.add(ear)}helmet.visible=false;
+const armorDark=mat(0x454e5a,.52,.48), steelMid=mat(0x929eaa,.34,.62), steelBright=mat(0xd4d9dd,.27,.72), leather=mat(0x29252a,.82,.08), skinWarm=mat(0xc99d7f,.86,0), hairSilver=mat(0xc9cdd2,.62,.12), cloakWhite=mat(0xe5e1d7,.9,0), seamGold=mat(0xb18b4b,.38,.62);
+function ellipsoid(parent, material, pos, scale, seg=12){const m=new THREE.Mesh(new THREE.SphereGeometry(1,seg,Math.max(8,seg-2)),material);m.position.set(...pos);m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function limb(parent, material, a, b, radius, seg=9){const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),dir=vb.clone().sub(va);const m=new THREE.Mesh(new THREE.CylinderGeometry(radius*.82,radius,dir.length(),seg,1),material);m.position.copy(va.clone().add(vb).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+// Pelvis and fitted cuirass silhouette
+ellipsoid(body,leather,[0,.91,0],[.39,.32,.25]);
+ellipsoid(body,armorDark,[0,1.38,0],[.49,.59,.29],14);
+ellipsoid(body,steelMid,[0,1.52,.115],[.43,.43,.245],14);
+ellipsoid(body,steelBright,[0,1.61,.19],[.355,.34,.17],14);
+// Central breastplate ridge, engraved edging and segmented abdominal plates
+box(body,.055,.49,.035,seamGold,0,1.53,.355);
+for(let j=0;j<3;j++){const plate=ellipsoid(body,steelMid,[0,1.23-j*.13,.205],[.31,.075,.135],10);plate.rotation.x=-.08;}
+for(const side of [-1,1]){
+  // Hips, thighs, knees, greaves and boots
+  ellipsoid(body,armorDark,[side*.22,.88,0],[.22,.2,.22]);
+  limb(body,leather,[side*.22,.82,0],[side*.25,.48,.015],.135);
+  limb(body,steelMid,[side*.25,.76,.11],[side*.25,.49,.12],.145);
+  ellipsoid(body,steelBright,[side*.25,.49,.13],[.15,.13,.13],10);
+  limb(body,armorDark,[side*.25,.43,.01],[side*.27,.14,.04],.105);
+  ellipsoid(body,steelMid,[side*.27,.28,.105],[.12,.22,.12],10);
+  ellipsoid(body,leather,[side*.27,.105,.14],[.17,.1,.28],10);
+  // Layered shoulder plates and articulated arms
+  ellipsoid(body,steelBright,[side*.48,1.78,0],[.25,.21,.27],12);
+  ellipsoid(body,steelMid,[side*.49,1.81,.09],[.205,.13,.22],10);
+  ellipsoid(body,seamGold,[side*.49,1.91,.045],[.13,.025,.14],8);
+  limb(body,armorDark,[side*.51,1.68,0],[side*.59,1.37,.025],.125);
+  limb(body,steelMid,[side*.51,1.68,.085],[side*.59,1.39,.11],.115);
+  ellipsoid(body,steelBright,[side*.59,1.38,.11],[.12,.13,.12],10);
+  limb(body,leather,[side*.59,1.33,.02],[side*.62,1.07,.1],.09);
+  ellipsoid(body,steelMid,[side*.62,1.19,.11],[.105,.18,.11],10);
+  ellipsoid(body,leather,[side*.63,1.01,.13],[.105,.11,.1],9);
+  // Small restrained rivets on the shoulder edge
+  for(let k=0;k<3;k++)ellipsoid(body,seamGold,[side*(.42+k*.055),1.82-k*.035,.255],[.025,.025,.014],6);
+}
+// Neck, natural face, nose, ears, brows and eyes
+limb(body,skinWarm,[0,1.79,0],[0,2.04,0],.12,10);
+ellipsoid(body,skinWarm,[0,2.19,.015],[.205,.275,.19],14);
+ellipsoid(body,skinWarm,[0,2.15,.19],[.055,.09,.07],8); // nose
+for(const side of [-1,1]){
+ ellipsoid(body,skinWarm,[side*.205,2.2,0],[.055,.085,.065],8);
+ ellipsoid(body,black,[side*.082,2.23,.183],[.025,.018,.012],8);
+ ellipsoid(body,armorDark,[side*.082,2.265,.18],[.045,.018,.018],8);
+}
+// Silver-white swept-back hair and long side locks
+ellipsoid(body,hairSilver,[0,2.38,-.025],[.218,.15,.205],12);
+ellipsoid(body,hairSilver,[0,2.44,-.11],[.21,.105,.19],12);
+for(const side of [-1,1]){
+ const lock=ellipsoid(body,hairSilver,[side*.19,2.18,-.045],[.065,.25,.09],9);lock.rotation.z=side*.13;
+ const rear=ellipsoid(body,hairSilver,[side*.13,2.21,-.16],[.07,.27,.09],9);rear.rotation.z=-side*.2;
+}
+// Full silver beard in several tapered overlapping locks
+ellipsoid(body,hairSilver,[0,2.015,.105],[.15,.17,.12],10);
+for(const side of [-1,0,1]){const beardLock=new THREE.Mesh(new THREE.ConeGeometry(side===0?.085:.07,.32,8),hairSilver);beardLock.position.set(side*.07,1.91,.15);beardLock.rotation.x=-.13;beardLock.castShadow=true;body.add(beardLock)}
+// White cloak falls from the shoulders, with folded side panels and a Lily clasp
+const cloakShape=new THREE.Shape();cloakShape.moveTo(-.25,1.86);cloakShape.quadraticCurveTo(-.48,1.25,-.42,.38);cloakShape.quadraticCurveTo(0,.24,.42,.38);cloakShape.quadraticCurveTo(.48,1.25,.25,1.86);cloakShape.quadraticCurveTo(0,1.72,-.25,1.86);
+const cloakGeo=new THREE.ShapeGeometry(cloakShape,8);const cloak=new THREE.Mesh(cloakGeo,cloakWhite);cloak.position.set(0,0,-.29);cloak.material.side=THREE.DoubleSide;cloak.castShadow=true;body.add(cloak);
+for(const side of [-1,1]){const fold=ellipsoid(body,mat(0xbfc0bd,.9,0),[side*.28,1.08,-.305],[.045,.66,.025],8);fold.rotation.z=side*.09;}
+ellipsoid(body,seamGold,[0,1.83,.22],[.075,.075,.035],8);
+// Lily insignia on chest: gold petals on a deep-blue shield
+const shield=ellipsoid(body,blue,[0,1.43,.354],[.13,.18,.035],9);
+for(let k=-1;k<=1;k++){const petal=ellipsoid(body,seamGold,[k*.055,1.47+Math.abs(k)*.035,.388],[.025,.075,.012],7);petal.rotation.z=-k*.35;}
+// Sword, shaped hilt, crossguard and steel blade; held at Robin's right side
+const swordPivot=new THREE.Group(); swordPivot.position.set(.67,1.23,.17);body.add(swordPivot);
+limb(swordPivot,leather,[0,-.22,0],[0,.06,0],.045,8);box(swordPivot,.34,.045,.06,seamGold,0,.08,0);
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.075,.88,.035),steelBright);blade.position.set(0,.53,0);blade.castShadow=true;swordPivot.add(blade);
+const swordTip=new THREE.Mesh(new THREE.ConeGeometry(.052,.18,4),steelBright);swordTip.position.set(0,1.06,0);swordTip.castShadow=true;swordPivot.add(swordTip);
+// Tiger's Crown helmet: stored on Robin and shown only in its story beat
+const helmet=new THREE.Group();body.add(helmet);
+ellipsoid(helmet,steelBright,[0,2.36,0],[.235,.24,.21],12);
+ellipsoid(helmet,armorDark,[0,2.28,.16],[.19,.12,.11],10);
+box(helmet,.25,.07,.08,seamGold,0,2.26,.225);
+for(const side of [-1,1]){const ear=new THREE.Mesh(new THREE.ConeGeometry(.075,.22,5),seamGold);ear.position.set(side*.16,2.59,-.015);ear.rotation.z=-side*.2;helmet.add(ear);const stripe=ellipsoid(helmet,seamGold,[side*.09,2.48,.12],[.035,.13,.025],7);stripe.rotation.z=-side*.35;}
+const tigerBrow=ellipsoid(helmet,seamGold,[0,2.48,.19],[.14,.035,.035],8);
+ellipsoid(helmet,blue,[0,2.55,.18],[.055,.045,.02],8);helmet.visible=false;
 robin.position.set(0,0,5);
 const enemies=[];
 function createEnemy(x,z,i){const g=new THREE.Group();scene.add(g);const armor=i%2?mat(0x493d45,.75,.25):enemyMat;cylinder(g,.34,.43,.95,armor,0,1.15,0,7);box(g,.72,.22,.42,i%2?mat(0x8c5d51,.5,.3):silver,0,1.6,0);for(const sx of [-.35,.35]){const pauldron=new THREE.Mesh(new THREE.DodecahedronGeometry(.19,0),armor);pauldron.position.set(sx,1.65,0);g.add(pauldron)}const h=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),black);h.position.y=1.85;g.add(h);for(const s of [-1,1]){cylinder(g,.12,.16,.65,enemyMat,s*.48,1.1,0,7);cylinder(g,.14,.16,.65,enemyMat,s*.2,.38,0,7)}const eye1=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),glow);eye1.position.set(-.09,1.88,.2);g.add(eye1);const eye2=eye1.clone();eye2.position.x=.09;g.add(eye2);const weapon=box(g,.08,.75,.08,silver,.55,1.15,.1);weapon.rotation.z=-.25;g.position.set(x,0,z);scene.add(g);enemies.push({g,hp:3,attack:0,dead:false,weapon});}
 for(let i=0;i<7;i++)createEnemy((i%4)*3.3-5,-7-Math.floor(i/4)*4,i);
 let yaw=0,pitch=-.08,third=true,health=100,attacking=0,dodge=0,helmetOn=false,started=false,dialogueIndex=0;
 const keys={};let locked=false;
-const start=document.getElementById('start'),dialogue=document.getElementById('dialogue'),dialogueText=document.getElementById('dialogueText'),next=document.getElementById('next'),toast=document.getElementById('toast');
+const start=document.getElementById('start'),dialogue=document.getElementById('dialogue'),dialogueText=document.getElementById('dialogueText'),next=document.getElementById('next'),toast=document.getElementById('toast'),pause=document.getElementById('pause');
 const lines=[
 {title:'THE BATTLE OF THE KING’S BANE',text:'Kiemal, the greatest kingdom in all the realms, stands at the edge of ruin.'},
 {title:'THE KING’S QUESTION',text:'KING: “How many?”  ROBIN: “Enough.”  KING: “Enough for what?”  ROBIN: “Enough to win.”'},
@@ -113,13 +168,14 @@ function updateUI(){document.getElementById('health').style.width=health+'%';doc
 function nextLine(){dialogueIndex++;if(dialogueIndex<lines.length){dialogueText.textContent=lines[dialogueIndex].text;document.getElementById('sceneTitle').textContent=lines[dialogueIndex].title;helmetOn=dialogueIndex===2;helmet.visible=helmetOn;if(dialogueIndex===3){helmetOn=false;helmet.visible=false;showToast('Robin casts the Tiger’s Crown aside')}}else{dialogue.style.display='none';started=true;helmetOn=false;helmet.visible=false;requestLock();showToast('The first wave is here. Defend the courtyard!')}}
 next.onclick=nextLine;
 function requestLock(){renderer.domElement.requestPointerLock?.()}
+document.getElementById('resume').onclick=()=>requestLock();
 document.getElementById('begin').onclick=()=>{start.style.display='none';dialogue.style.display='block';dialogueIndex=0;helmet.visible=false;document.getElementById('sceneTitle').textContent=lines[0].title;dialogueText.textContent=lines[0].text;requestLock()};
-document.addEventListener('pointerlockchange',()=>locked=document.pointerLockElement===renderer.domElement);
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;pause.style.display=(started&&!locked)?'flex':'none';if(!locked)for(const k in keys)keys[k]=false;});
 document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-1.15,Math.min(1.15,pitch))});
-document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyV'){third=!third;updateUI();showToast(third?'Third-person view':'First-person view')}if(e.code==='Space'&&started)dodge=.28});
+document.addEventListener('keydown',e=>{if(e.code==='Escape'){return}keys[e.code]=true;if(e.code==='KeyV'&&started&&locked){third=!third;updateUI();showToast(third?'Third-person view':'First-person view')}if(e.code==='Space'&&started&&locked)dodge=.28});
 document.addEventListener('keyup',e=>keys[e.code]=false);
 document.addEventListener('mousedown',e=>{if(e.button===0&&started&&locked&&attacking<=0){attacking=.28;for(const en of enemies){if(en.dead)continue;const dx=en.g.position.x-robin.position.x,dz=en.g.position.z-robin.position.z;const dist=Math.hypot(dx,dz);const forwardX=Math.sin(yaw),forwardZ=-Math.cos(yaw);const dot=(dx*forwardX+dz*forwardZ)/(dist||1);if(dist<3.2&&dot>.1){en.hp--;if(en.hp<=0){en.dead=true;scene.remove(en.g);showToast('Enemy defeated')}else showToast('Strike landed')}}}});
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(started){const forward=new THREE.Vector3(Math.sin(yaw),0,-Math.cos(yaw));const right=new THREE.Vector3(Math.cos(yaw),0,Math.sin(yaw));const move=new THREE.Vector3();if(keys.KeyW)move.add(forward);if(keys.KeyS)move.sub(forward);if(keys.KeyD)move.add(right);if(keys.KeyA)move.sub(right);if(move.lengthSq()>0)move.normalize();let speed=dodge>0?10:5.2;if(dodge>0)dodge-=dt;robin.position.addScaledVector(move,speed*dt);robin.position.x=THREE.MathUtils.clamp(robin.position.x,-17,17);robin.position.z=THREE.MathUtils.clamp(robin.position.z,-15,14);if(move.lengthSq()>0)robin.rotation.y=Math.atan2(move.x,move.z);else robin.rotation.y=yaw;
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(started&&locked){const forward=new THREE.Vector3(Math.sin(yaw),0,-Math.cos(yaw));const right=new THREE.Vector3(Math.cos(yaw),0,Math.sin(yaw));const move=new THREE.Vector3();if(keys.KeyW)move.add(forward);if(keys.KeyS)move.sub(forward);if(keys.KeyD)move.add(right);if(keys.KeyA)move.sub(right);if(move.lengthSq()>0)move.normalize();let speed=dodge>0?10:5.2;if(dodge>0)dodge-=dt;robin.position.addScaledVector(move,speed*dt);robin.position.x=THREE.MathUtils.clamp(robin.position.x,-17,17);robin.position.z=THREE.MathUtils.clamp(robin.position.z,-15,14);if(move.lengthSq()>0)robin.rotation.y=Math.atan2(move.x,move.z);else robin.rotation.y=yaw;
 if(attacking>0){attacking-=dt;swordPivot.rotation.x=-Math.sin((.28-attacking)/.28*Math.PI)*1.5;swordPivot.rotation.z=-Math.sin((.28-attacking)/.28*Math.PI)*.7}else{swordPivot.rotation.x=0;swordPivot.rotation.z=0}
 for(const en of enemies){if(en.dead)continue;const dx=robin.position.x-en.g.position.x,dz=robin.position.z-en.g.position.z,d=Math.hypot(dx,dz);if(d>1.65){en.g.position.x+=dx/d*dt*1.25;en.g.position.z+=dz/d*dt*1.25;en.g.rotation.y=Math.atan2(dx,dz)}else{en.attack-=dt;if(en.attack<=0){health=Math.max(0,health-5);en.attack=1.25;updateUI();if(health<=0){started=false;document.getElementById('sceneTitle').textContent='THE COURTYARD HAS FALLEN';document.getElementById('sceneText').textContent='Refresh the page to try again.';showToast('Robin has fallen')}}}}
 }
